@@ -43,12 +43,12 @@ const userRouter = require("./routes/user.js");
 
 // set and use
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(process.cwd(), "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
-app.use(express.static(path.join(__dirname, "/public")));
-app.use("/uploads", express.static(path.join(__dirname, "/public/uploads")));
+app.use(express.static(path.join(process.cwd(), "public")));
+app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
 
 // Global default template variables (always defined across all views/layouts)
 app.use((req, res, next) => {
@@ -80,6 +80,7 @@ const clientPromise = new Promise((resolve) => {
 });
 
 async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
   try {
     await mongoose.connect(primaryDbUrl, {
       serverSelectionTimeoutMS: 5000,
@@ -107,6 +108,16 @@ async function connectDB() {
 }
 
 connectDB();
+
+// Ensure DB is connected for serverless invocations
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState === 0) {
+    try {
+      await connectDB();
+    } catch (e) {}
+  }
+  next();
+});
 
 // session store configuration: share the active Mongoose client
 let store;
@@ -200,7 +211,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  const port = process.env.PORT || 8080;
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+module.exports = app;

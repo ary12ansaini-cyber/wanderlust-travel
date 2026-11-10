@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+.git
+.vscode
+public/uploads/*
+!public/uploads/.gitkeep
