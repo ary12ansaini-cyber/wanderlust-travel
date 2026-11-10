@@ -77,6 +77,11 @@ const clientPromise = new Promise((resolve) => {
   mongoose.connection.once("open", () => {
     resolve(mongoose.connection.getClient());
   });
+  setTimeout(() => {
+    if (mongoose.connection.readyState === 1) {
+      resolve(mongoose.connection.getClient());
+    }
+  }, 4000);
 });
 
 async function connectDB() {
@@ -175,6 +180,14 @@ app.use((req, res, next) => {
   res.locals.success = req.flash ? req.flash("success") : [];
   res.locals.error = req.flash ? req.flash("error") : [];
   res.locals.currUser = req.user || null;
+  next();
+});
+
+// Handle Vercel rewrite prefix if present
+app.use((req, res, next) => {
+  if (req.url.startsWith("/api")) {
+    req.url = req.url.replace(/^\/api/, "") || "/";
+  }
   next();
 });
 
