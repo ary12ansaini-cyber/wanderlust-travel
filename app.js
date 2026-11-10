@@ -98,16 +98,15 @@ async function connectDB() {
         "DNS SRV lookup issue with local network router. Trying local MongoDB fallback..."
       );
     }
-    try {
-      await mongoose.connect(localDbUrl, {
-        serverSelectionTimeoutMS: 5000,
-      });
-      console.log("Connected to local MongoDB successfully (Fallback Mode)");
-    } catch (localErr) {
-      console.error("Local MongoDB also unavailable:", localErr.message);
-      console.warn(
-        "Tip: Check if your current IP address is whitelisted in MongoDB Atlas (Network Access -> Add IP Address -> 0.0.0.0/0)."
-      );
+    if (!process.env.VERCEL) {
+      try {
+        await mongoose.connect(localDbUrl, {
+          serverSelectionTimeoutMS: 3000,
+        });
+        console.log("Connected to local MongoDB successfully (Fallback Mode)");
+      } catch (localErr) {
+        console.error("Local MongoDB also unavailable:", localErr.message);
+      }
     }
   }
 }
