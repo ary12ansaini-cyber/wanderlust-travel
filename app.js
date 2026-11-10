@@ -211,7 +211,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+if (!process.env.VERCEL) {
   const port = process.env.PORT || 8080;
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
