@@ -185,6 +185,12 @@ app.use((req, res, next) => {
 
 // Handle Vercel rewrite prefix if present
 app.use((req, res, next) => {
+  if (req.url === "/api" || req.url === "/api/") {
+    const original = req.headers["x-matched-path"];
+    if (original && original !== "/api" && original !== "/api/") {
+      req.url = original;
+    }
+  }
   if (req.url.startsWith("/api")) {
     req.url = req.url.replace(/^\/api/, "") || "/";
   }
